@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-static
+    environment:
+      - VIRTUAL_HOST=*/styles/*.*,*/images/*.*
+      - VIRTUAL_HOST_WEIGHT=0
     ports:
       - 80
   web:
@@ -14,6 +17,9 @@ services:
       dockerfile: Dockerfile-web
     ports:
       - 8080
+    environment:
+      - VIRTUAL_HOST=*/
+      - VIRTUAL_HOST_WEIGHT=1
     volumes:
       - ../data:/Users/dcameron/persistence
   proxy:
@@ -26,3 +32,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 80:80
+      - 1936:1936
