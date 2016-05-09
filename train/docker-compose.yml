@@ -1,0 +1,21 @@
+version: '2'
+services:
+  web1:
+    image: train_web
+    ports:
+      - 8080
+    volumes:
+      - ../data:/Users/dcameron/persistence
+  web2:
+    image: train_web
+    ports:
+      - 8080
+    volumes:
+      - ../data:/Users/dcameron/persistence
+  static:
+    build: ./static/
+    links:
+      - web1
+      - web2
+    ports:
+      - 80:80
