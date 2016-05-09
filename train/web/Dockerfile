@@ -1,5 +1,5 @@
 # AlpineLinux with a glibc-2.21 and Oracle Jdk 8
-FROM alpine:3.2
+FROM alpine:3.3
 MAINTAINER Marc J. Greenberg <codemarc@gmail.com>
 
 
