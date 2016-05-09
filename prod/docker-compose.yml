@@ -1,0 +1,28 @@
+version: '2'
+services:
+  static:
+    hostname: static
+    build:
+      context: .
+      dockerfile: Dockerfile-static
+    ports:
+      - 80
+  web:
+    hostname: web
+    build:
+      context: .
+      dockerfile: Dockerfile-web
+    ports:
+      - 8080
+    volumes:
+      - ../data:/Users/dcameron/persistence
+  proxy:
+    image: dockercloud/haproxy:1.2.1
+    hostname: proxy
+    links:
+      - static
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80

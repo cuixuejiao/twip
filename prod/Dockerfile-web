@@ -2,7 +2,7 @@
 FROM alpine:3.3
 MAINTAINER Marc J. Greenberg <codemarc@gmail.com>
 
-RUN apk --update add curl ca-certificates tar && \
+RUN apk --update add unzip curl ca-certificates tar && \
     curl -Ls https://circle-artifacts.com/gh/andyshinn/alpine-pkg-glibc/6/artifacts/0/home/ubuntu/alpine-pkg-glibc/packages/x86_64/glibc-2.21-r2.apk > /tmp/glibc-2.21-r2.apk && \
     apk add --allow-untrusted /tmp/glibc-2.21-r2.apk
 
@@ -50,4 +50,3 @@ ADD http://central.maven.org/maven2/org/mortbay/jetty/jetty-runner/7.6.5.v201207
 ADD https://s3.amazonaws.com/infra-assessment/companyNews.war  ./
 
 CMD java -jar jetty-runner.jar companyNews.war
-
