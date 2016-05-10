@@ -72,7 +72,8 @@ if [ $# -lt 1 ] || [ "$1" = "help" ]; then
    echo "prod       Creates the production environment"
    echo "pack       Tag and push production images"
    echo "status     Display the status of the environment"
-   echo "bench      Run Benchmarking Tests" 
+   echo "test       Quick test - header info only" 
+   echo "bench      Run benchmarking tests" 
    echo "clean      Removes dangling images and exited containers"
    echo "images     List images"
    echo
@@ -133,6 +134,14 @@ if [ "$1" = "pack" ]; then
     docker tag prod_web codemarc/twipweb
     docker push codemarc/twipstatic
     docker push codemarc/twipweb
+	echo;exit
+fi
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# test
+if [ "$1" = "test" ]; then
+    echo curl -I -X GET http://localhost/
+    curl -I -X GET http://localhost/$2
 	echo;exit
 fi
 
