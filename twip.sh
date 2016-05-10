@@ -106,7 +106,7 @@ if [ "$1" = "prod" ]; then
             cmd="$2"
             if [ "$2" = "up" ]; then cmd="up -d";fi;
             docker-compose $cmd $3 $4
-            if [ "$2" = "build" ]; then echo;docker images
+            if [ "$2" = "build" ]; then docker pull dockercloud/haproxy:1.2.1;echo;docker images
             else echo;docker-compose ps;fi        
         cd ..
     fi
