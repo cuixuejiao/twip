@@ -36,8 +36,10 @@ if [ ! -x "$(which docker)" ]; then
         curl -L https://github.com/docker/machine/releases/download/v0.6.0/docker-machine-`uname -s`-`uname -m` > docker-machine
         chmod +x docker-machine
         sudo mv docker-machine /usr/local/bin/docker-machine
-    fi        
-
+    fi 
+    
+    # add apache bench
+    sudo apt-get install -y apache2-utils
     echo
     echo sudo docker version
     sudo docker version    
@@ -69,6 +71,7 @@ if [ $# -lt 1 ] || [ "$1" = "help" ]; then
    echo "train      Creates the training environment"
    echo "prod       Creates the production environment"
    echo "status     Display the status of the environment"
+   echo "bench      Run Benchmarking Tests" 
    echo "clean      Removes dangling images and exited containers"
    echo "images     List images"
    echo
@@ -122,6 +125,13 @@ if [ "$1" = "status" ]; then
 	echo;exit
 fi      	
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# bench
+if [ "$1" = "bench" ]; then
+    ab -n 1000 -c 10 http://localhost/
+	echo;exit
+fi
+      	
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # images
 if [ "$1" = "images" ]; then
