@@ -1,5 +1,5 @@
 # The Infrastructure Problem (TWIP)
-Submitted by [Marc J. Greenberg](mailto:codemarc@gmail.com)
+[*Marc J. Greenberg*](mailto:codemarc@gmail.com)
 
 ### Background / Problem
 > A development team has created a Java web app that is ready for a limited 
@@ -31,7 +31,7 @@ virtualization solution you would like to use please ping us first).
 ### Solution Strategy
 
 There is a set of principles about to follow when a working on problem set like this. 
-Create infrastructure that is flexable, automatic, consistent, reproducable,
+Create infrastructure that is flexible, automatic, consistent, reproducible,
 and disposable. The problem feels like it was custom made for a **container** solution.
 And today that means **Docker**.  
 
@@ -61,20 +61,19 @@ These software components are used to logically run the application
 - [HAProxy](http://www.haproxy.org/)
 - [Apache Jetty](http://www.eclipse.org/jetty/)
 
-
 ### Project Roadmap
 1. Setup a working environment with the selected tooling.
-- Define/Build containers with the appropiate artifacts and configuration.
+- Define/Build containers with the appropriate artifacts and configuration.
 - Test process using the pheonix server pattern (clean environment) to running solution.
-- Experiment with at scale environments following some of the evolutionary architecture ideation. 
+- Run *at scale* experiments following the [evolutionary architecture](https://www.thoughtworks.com/insights/blog/microservices-evolutionary-architecture) ideation. 
    
 
 <br/><hr/>
-## Platfom
+## Platform
 
 ### Virtual Machine
 We all know the easiest way to get started is to spinup a new vm either using 
-VMWare Fusion or Virtual Box. Our elemental starting point is `Ubuntu 14.04.3 LTS`.
+VMWare Fusion or Virtual Box. Our elemental starting point is *Ubuntu 14.04.3 LTS*.
 Since out work revolves around docker the first hurdle is to setup the raw environment
 with the docker tool chain. 
 
@@ -83,7 +82,8 @@ with the docker tool chain.
 I like using public cloud resources (My personal favorite is Digital Ocean as 
 i find droplets are easy to deal with). Since *AWS* is one of the choices, I 
 start by spinning up a brand spanking new EC2 t2.micro instance, running 
-`Ubuntu 14.04.3 LTS`. Please remember to open port `80` for HTTP traffic in the 
+*Ubuntu 14.04.3 LTS*. Please remember to open port *80* for HTTP traffic and
+a port *1936* for monitoring (will be discussed later) in the 
 security group associated with your instance. 
 
 ### Docker Machine
@@ -95,7 +95,7 @@ VMware Fusion, VMware vSphere, Amazon Web Services, Digital Ocean and even my ol
 dell laptop as bare metal running ubuntu 14.04 after I install docker.
 
 Since it is outside the scope of this assignment I will avoid the provisioning
-functionality till a discussion of high availabilty and clustering.
+functionality till a discussion of high availability and clustering.
 
 <br/><hr/>
 ## Source 
@@ -111,7 +111,7 @@ documentation, etc.
 The reasons for this are well known in the construction of software products and they are 
 equally applicable in the construction of infrastructure. 
 * history; with comments and context
-* transparency/visibility; a means to to share and correlate amoung multiple 
+* transparency/visibility; a means to to share and correlate among multiple 
 contributors
 * actionability; the ability to automate the execution of an action based 
 on a change.
@@ -148,20 +148,19 @@ Checking connectivity... done.
 The main script for my solution is a bash script aptly named *twip.sh*.
 It is located in the twip directory that you just cloned. While there are many 
 other scripting approaches that could be used here, good old bash is still 
-useful to get stuff done quicky right out of the box.
+useful to get stuff done quickly right out of the box.
 
 The first time you run */twips.sh* on a fresh clean ubuntu 14.04 machine it
 checks for and installs 
 [docker](https://www.docker.com), 
 [docker-compose](https://www.docker.com/products/docker-compose), 
 [docker-machine](https://www.docker.com/products/docker-machine), and 
-[apache Bench](http://httpd.apache.org/docs/2.2/en/programs/ab.html).  
+[apache bench](http://httpd.apache.org/docs/2.2/en/programs/ab.html).  
  
 Additionally setup adds the default ubuntu user to the docker group. All you need to do is to **logout** and then **relogin** so that the group modification can take effect.
 
 ```bash
-$ cd twip
-$ ./twip.sh
+$ cd twip && ./twip.sh
 .
 .
 .
@@ -185,9 +184,9 @@ Server:
 
 ```
 
-After you log back in and cd twip and run `./twip.sh`
+After you log back in and cd twip and run *./twip.sh*
 ```bash
-$ ./twip.sh
+$ cd twip && ./twip.sh
 
 twip usage: command [arg...]
 
@@ -204,30 +203,40 @@ images     List images
 
 <br/><hr/>
 ## Training 
-Package the static assets into a container running [NGINX ]([NGINX](https://www.nginx.com/) and package the app 
+Package the static assets into a container running [NGINX](https://www.nginx.com/) and package the app 
 on into a container running [jetty](http://www.eclipse.org/jetty/).
+<br/><br/><br/>
+<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/train.png' width='400'/>  
 
-<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/train.png' width='400'/>
-
-### NGINX for proxy and hosting static assets
-
+##### NGINX for proxy and hosting static assets
 [NGINX](https://www.nginx.com/) is a web server, a load balancer, 
 a content cache and more. I am by no means an NGINX expert but I have 
 been using it more and more lately and I find it to be a very effective 
 tool in the container world. It is modular in nature and is a little 
-easier configure to understand then Apache, and if configured appropiatly
-is is blazingly fast.
+easier configure to understand then Apache, and if configured appropriately
+is is blazingly fast.  
 
-[jetty](http://www.eclipse.org/jetty/) is another web server that is 
+
+##### Jetty as a Java servlet container
+[Jetty](http://www.eclipse.org/jetty/) is another web server that is 
 able to serve static and/or dynamic content either from a standalone or embedded 
 instantiations. While there is some overlap in between of capabilities of 
-NGINX and jetty, in this project jetty is used strictly as a servlet container
+nginx and jetty, in this project jetty is used strictly as a servlet container for
+the dynamic part of the application.
 
-### Building the containers
+So why choose Jetty? While there are several other open source servlet containers 
+available (Apache Tomcat, Glassfish, Resin, ...) Jetty is known for the following
+attributes: performance, throughput, small memory footprint and page load time.
+These characteristics fall in line with our requirements as well as our chosen 
+implementation infrastructure.
+<br/><br/>
 
-The included script `./twip.sh` simplifies the process of building and running
+### Build the training containers
+
+The included script *./twip.sh* simplifies the process of building and running
 the environment. It is yet another wrapper on top of the docker tools to help 
 reduce command line fat finger ~~mistakes~~.
+
 
 ````bash
 $ ./twip.sh images
@@ -254,10 +263,10 @@ cleaner and consistent environment.
 
 * jetty requires a jdk as servlets are just in time compiled. The base implementation of alpine 
 does not include java. I add the Oracle jdk version of java 8 to avoid any missing components.
-It is bigger the so
+
  
 ### Run training
-To spin up the training environment you can run `./twip.sh` as follows:  
+To spin up the training environment you can run *./twip.sh* as follows:  
 
 ````bash
 $ ./twip.sh train up
@@ -272,12 +281,54 @@ Creating train_static_1
 train_static_1   nginx -g daemon off;             Up      443/tcp, 0.0.0.0:80->80/tcp 
 train_web1_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32812->8080/tcp     
 train_web2_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32813->8080/tcp
+````
 
-$ wget localhost > /dev/null
-HTTP request sent, awaiting response... 200 OK
-Length: 331 [text/html]
-Saving to: ‘index.html’
-2016-05-07 22:02:58 (94.6 MB/s) - ‘index.html’ saved [331/331]
+And run a few quick test
+````bash
+$ ./twip.sh test
+curl -I -X GET http://localhost/
+HTTP/1.1 200 OK
+Server: nginx/1.9.15
+Date: Tue, 10 May 2016 21:16:50 GMT
+Content-Type: text/html;charset=ISO-8859-1
+Content-Length: 331
+Connection: keep-alive
+Set-Cookie: JSESSIONID=1uymgnsr4edtx1ue20vl1n4p7w;Path=/
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Request-Time: 0.002
+Upstream-Address: 172.18.0.2:8080
+Upstream-Response-Time: 1462915010.123
+
+$ ./twip.sh test Read.action
+curl -I -X GET http://localhost/Read.action
+HTTP/1.1 200 OK
+Server: nginx/1.9.15
+Date: Tue, 10 May 2016 21:20:30 GMT
+Content-Type: text/html;charset=ISO-8859-1
+Content-Length: 799
+Connection: keep-alive
+Set-Cookie: JSESSIONID=10ekx3h62qoi5c5n1hqf87448;Path=/
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Request-Time: 0.026
+Upstream-Address: 172.18.0.2:8080
+Upstream-Response-Time: 1462915230.715
+
+$ ./twip.sh train down
+Stopping train_static_1 ... done
+Stopping train_web1_1 ... done
+Stopping train_web2_1 ... done
+Removing train_static_1 ... done
+Removing train_web1_1 ... done
+Removing train_web2_1 ... done
+Removing network train_default
+
+Name   Command   State   Ports 
+------------------------------
+
+$ ./twip.sh test
+curl -I -X GET http://localhost/
+curl: (7) Failed to connect to localhost port 80: Connection refused
+
 ````
 
 ### Benchmarking the training environment
@@ -347,38 +398,75 @@ Percentage of the requests served within a certain time (ms)
 ````
 
 ### Ups and Downs
-The following tests illustrate behaviours of the training environment
-
-#### no webapps
-> $ ./twip.sh train scale web2=0  
-> $ ./twip.sh train scale web1=0
- 
-````bash
-     Name              Command          State              Ports            
----------------------------------------------------------------------------
-train_static_1   nginx -g daemon off;   Up      443/tcp, 0.0.0.0:80->80/tcp 
-
-$ wget localhost > /dev/null
-HTTP request sent, awaiting response... 502 Bad Gateway
-````
-
-#### restore webapp
-> ./twip.sh train scale web2=1  
-
+The following tests illustrate behaviors of the training environment
+Starting with the state:
 ````bash
      Name                   Command               State              Ports            
 -------------------------------------------------------------------------------------
 train_static_1   nginx -g daemon off;             Up      443/tcp, 0.0.0.0:80->80/tcp 
-train_web2_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32779->8080/tcp     
-
-$ wget localhost > /dev/null
-HTTP request sent, awaiting response... 200 OK
+train_web1_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32784->8080/tcp     
+train_web2_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32783->8080/tcp     
 ````
 
-#### scale up static assets
-> $ ./twip.sh train scale static=2  
+>#### no webapps
 
 ````bash
+$ ./twip.sh train scale web2=0
+Stopping and removing train_web2_1 ... done
+
+     Name                   Command               State              Ports            
+-------------------------------------------------------------------------------------
+ train_static_1   nginx -g daemon off;             Up      443/tcp, 0.0.0.0:80->80/tcp 
+ train_web1_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32784->8080/tcp
+ 
+ $ ./twip.sh train scale web1=0
+ stopping and removing train_web1_1 ... done
+
+     Name              Command          State              Ports            
+---------------------------------------------------------------------------
+train_static_1   nginx -g daemon off;   Up      443/tcp, 0.0.0.0:80->80/tcp 
+
+$ ./twip.sh test
+curl -I -X GET http://localhost/
+HTTP/1.1 502 Bad Gateway
+Server: nginx/1.9.15
+Date: Tue, 10 May 2016 21:36:09 GMT
+Content-Type: text/html
+Content-Length: 537
+Connection: keep-alive
+ETag: "572cb9eb-219"     
+````
+
+>#### restore webapp
+
+````bash
+$ ./twip.sh train scale web1=1
+Creating and starting train_web1_1 ... done
+
+     Name                   Command               State              Ports            
+-------------------------------------------------------------------------------------
+train_static_1   nginx -g daemon off;             Up      443/tcp, 0.0.0.0:80->80/tcp 
+train_web1_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32785->8080/tcp     
+
+$ ./twip.sh test
+curl -I -X GET http://localhost/
+HTTP/1.1 200 OK
+Server: nginx/1.9.15
+Date: Tue, 10 May 2016 21:40:38 GMT
+Content-Type: text/html;charset=ISO-8859-1
+Content-Length: 331
+Connection: keep-alive
+Set-Cookie: JSESSIONID=zgmv7qbjbghdzm0o5mapcgda;Path=/
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Request-Time: 1.083
+Upstream-Address: 172.18.0.2:8080
+Upstream-Response-Time: 1462916436.949
+````
+
+> #### scale up static assets
+
+````bash
+$ ./twip.sh train scale static=2  
 WARNING: The "static" service specifies a port on the host. If multiple containers for this service are created on a single host, the port will clash.
 Creating and starting train_static_2 ... error
 
@@ -391,22 +479,23 @@ train_static_2   nginx -g daemon off;             Exit 128
 train_web2_1     /bin/sh -c java -jar jetty ...   Up         0.0.0.0:32779->8080/tcp     
 ````
 
-#### no static assets
->$ ./twip.sh train scale static=0
+>#### no static assets
 
 ````bash
+$ ./twip.sh train scale static=0
+
      Name                   Command                State              Ports          
 ------------------------------------------------------------------------------------
 train_static_2   nginx -g daemon off;             Exit 128                           
-train_web2_1     /bin/sh -c java -jar jetty ...   Up         0.0.0.0:32779->8080/tcp 
+train_web2_1     /bin/sh -c java -jar jetty ...   Up         0.0.0.0:32779->8080/tcp
 
-$ wget localhost > /dev/null
-Connecting to localhost (localhost)|127.0.0.1|:80... failed: Connection refused.
-
-$ wget localhost:32279 > /dev/null
+$ ./twip.sh test
+curl -I -X GET http://localhost/
+curl: (7) Failed to connect to localhost port 80: Connection refused 
 ````
 
-#### Take it down
+### Take it down and clean it up
+
 ````bash
 $ ./twip.sh train down
 Stopping train_web2_1 ... done
@@ -414,6 +503,7 @@ Removing train_static_2 ... done
 Removing train_web2_1 ... done
 Removing network train_default
 ````
+
 <hr/>
 ## Production 
 
@@ -432,13 +522,20 @@ container implementation. This image balances between linked containers
 and, if launched in Docker Cloud or using Docker Compose v2, it reconfigures 
 itself when a linked cluster member redeploys, joins or leaves.
 
-So based on the behaviour seen in the training implementation it must be better to 
-seperate the the static assets and proxy services into seperate containers.
+So based on the behavior seen in the training implementation it must be better to 
+separate the the static assets and proxy services into separate containers.
 
 <img src='https://raw.githubusercontent.com/codemarc/twip/master/img/prod.png' width='400'/>
 
 Certainly the above configuration is more flexible then the training version.
-We can test out hypothsis by building and then testing our production configuration.
+We can test out hypothesis by building and then testing our production configuration.
+
+Additionally I am adding a Dynamic DNS service to work on this project. Dynamic DNS 
+(DDNS or DynDNS) is a method of automatically updating a name 
+server in the Domain Name System (DNS), often in real time, with the active 
+DDNS configuration of its configured hostnames, addresses or other information. 
+I am currently using the free version of the online service [no-ip](https://www.noip.com/remote-access).
+
 
 
 ### Building the containers
@@ -458,11 +555,11 @@ alpine                3.3                 13e1761bf172        31 hours ago      
 dockercloud/haproxy   1.2.1               3a6fb5b250d5        7 weeks ago         234.3 MB
 ````
 
-* HAProxy publishes stats that can be accessed at [http://&lt;host-ip&gt;:1936](https://github.com/codemarc/twip)
+* HAProxy publishes stats that can be accessed at `http://<host-ip>:1936`
  
 
 ### Test production
-To spin up the production environment you can run `./twip.sh` as follows:  
+Spin up the production environment and then have a look at http://stats:stats@twip.ddns.net:1936 as follows:  
 
 ````bash
 $ ./twip.sh prod up
@@ -475,12 +572,29 @@ Creating prod_proxy_1
 -------------------------------------------------------------------------------------------------
 prod_proxy_1    dockercloud-haproxy              Up      1936/tcp, 443/tcp, 0.0.0.0:32770->80/tcp 
 prod_static_1   nginx -g daemon off;             Up      443/tcp, 0.0.0.0:32769->80/tcp           
-prod_web_1      /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32768->8080/tcp                  
+prod_web_1      /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32768->8080/tcp
+
+
+$ ./twip.sh test
+curl -I -X GET http://localhost/
+HTTP/1.1 200 OK
+Content-Type: text/html;charset=ISO-8859-1
+Set-Cookie: JSESSIONID=19myfyth65zpj8y2q48h01fs0;Path=/
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Content-Length: 331
+Server: Jetty(7.x.y-SNAPSHOT)
+                  
 ````
+
+<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy1.png" />
+
+
 > $ ./twip.sh bench
 
-```
+```bash
 $ ./twip.sh bench
+ab -n 1000 -c 10 http://localhost/
+
 Server Software:        Jetty(7.x.y-SNAPSHOT)
 Server Hostname:        localhost
 Server Port:            80
@@ -489,35 +603,75 @@ Document Path:          /
 Document Length:        331 bytes
 
 Concurrency Level:      10
-Time taken for tests:   0.843 seconds
+Time taken for tests:   1.539 seconds
 Complete requests:      1000
 Failed requests:        0
-Total transferred:      561940 bytes
+Total transferred:      561925 bytes
 HTML transferred:       331000 bytes
-Requests per second:    1186.62 [#/sec] (mean)
-Time per request:       8.427 [ms] (mean)
-Time per request:       0.843 [ms] (mean, across all concurrent requests)
-Transfer rate:          651.18 [Kbytes/sec] received
+Requests per second:    649.83 [#/sec] (mean)
+Time per request:       15.389 [ms] (mean)
+Time per request:       1.539 [ms] (mean, across all concurrent requests)
+Transfer rate:          356.59 [Kbytes/sec] received
 
 Connection Times (ms)
               min  mean[+/-sd] median   max
 Connect:        0    0   0.4      0       5
-Processing:     0    8   9.3      6     108
-Waiting:        0    8   9.3      6     108
-Total:          0    8   9.3      6     108
+Processing:     1   15   7.4     14      83
+Waiting:        0   15   7.4     14      83
+Total:          1   15   7.4     14      83
 
 Percentage of the requests served within a certain time (ms)
-  50%      6
-  66%      9
-  75%     11
-  80%     13
-  90%     17
-  95%     24
-  98%     35
-  99%     51
- 100%    108 (longest request)
-
+  50%     14
+  66%     16
+  75%     17
+  80%     18
+  90%     21
+  95%     29
+  98%     37
+  99%     42
+ 100%     83 (longest request)
 ```
+
+Now lets scale up and see what happens...
+
+````bash
+$ ./twip.sh prod scale static=2
+$ ./twip.sh prod scale web=3
+$ ab -n 1000 -c 10 http://localhost/
+                                                                                 443/tcp,                 
+Concurrency Level:      10
+Time taken for tests:   3.921 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      561938 bytes
+HTML transferred:       331000 bytes
+Requests per second:    255.01 [#/sec] (mean)
+Time per request:       39.214 [ms] (mean)
+Time per request:       3.921 [ms] (mean, across all concurrent requests)
+Transfer rate:          139.94 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.5      0       6
+Processing:     1   39 221.2     11    2322
+Waiting:        0   39 221.2     11    2322
+Total:          1   39 221.5     11    2328
+
+Percentage of the requests served within a certain time (ms)
+  50%     11
+  66%     18
+  75%     23
+  80%     27
+  90%     41
+  95%     58
+  98%     84
+  99%   2145
+ 100%   2328 (longest request)
+  
+                                                                                0.0.0.0:80->80/tcp       
+````
+
+<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy2.png" /> 
 
 At this point I would normally run a battery of tests to calculate metrics
 and tune configuration. an once complete 
@@ -525,17 +679,21 @@ and tune configuration. an once complete
 <hr/>
 ### Concerns addressed
 
+
+<hr/>
+### Concerns addressed
+
 ##### Prevayler
 By analyzing the logs produced by jetty I was able to determine that 
-[prevayler](http://prevayler.org), persist data in the file system at
-`/Users/dcameron/persistence`. By creating a docker volume to be shared
+[prevayler](http://prevayler.org), persist data in the file system at 
+*/Users/dcameron/persistence*. By creating a docker volume to be shared
 across all where prevayler is used and mapping this volume to a location
-on the host file system we can effectivly persist data across the jetty
+on the host file system we can effectively persist data across the jetty
 instances.
 
 ### Concerns to be addressed
 * [ELK Stack](https://www.elastic.co/products) -
-If I were going to completly tool out this environment, I would add an additional 
+If I were going to completely tool out this environment, I would add an additional 
 [ELK Stack](https://www.elastic.co/products) containers. The elk stack add  Elasticsearch, 
 Logstash, Kibana, open source tool use for log based analytics.
  
