@@ -19,7 +19,6 @@ services:
   proxy:
     image: dockercloud/haproxy:1.2.1
     container_name: proxy
-    hostname: proxy
     links:
       - static
       - web
