@@ -35,26 +35,38 @@ Create infrastructure that is flexable, automatic, consistent, reproducable,
 and disposable. The problem feels like it was custom made for a **container** solution.
 And today that means **Docker**.  
 
-Technologies selected/used
+The full set of the technologies selected for this project are broken down as follows:
 
-- Training [VMware Fusion](https://www.vmware.com/),[Oracle VirtualBox](https://www.virtualbox.org/)
-- Production Amazon Web Services [EC2](https://aws.amazon.com/ec2/), [EC2 Container Service](https://aws.amazon.com/ecs/)
+#### Tools Environment
+These tools are used to host, build, test and run the infrastructure components
 - [Ubuntu Linux](http://www.ubuntu.com/)
-- [Docker Toolbox](https://www.docker.com/products/docker-toolbox) including [`docker`](https://www.docker.com), [`docker-compose`](https://www.docker.com/products/docker-compose), 
-[`docker-machine`](https://www.docker.com/products/docker-machine), [`docker-swarm`](http://www.docker.com/products/docker-swarm)
-- [Docker Hub](https://hub.docker.com/)
+  - Training [VMware Fusion](https://www.vmware.com/),[Oracle VirtualBox](https://www.virtualbox.org/)
+  - Production Amazon Web Services [EC2](https://aws.amazon.com/ec2/), [EC2 Container Service](https://aws.amazon.com/ecs/)
+- [Docker Hub](https://hub.docker.com/) and [Docker Toolbox](https://www.docker.com/products/docker-toolbox) including 
+  - [docker engine](https://www.docker.com) 
+  - [docker-compose](https://www.docker.com/products/docker-compose) 
+  - [docker-machine](https://www.docker.com/products/docker-machine)
+  - [docker-swarm](http://www.docker.com/products/docker-swarm)
+  
 - [Git 1.9.1](https://git-scm.com/) And [GitHub](https://github.com/)
+
+- [Apache Bench](http://httpd.apache.org/docs/2.2/en/programs/ab.html)  
+
+#### Application Environment
+These software components are used to logically run the application 
+
 - [Alpine Linux 3.3](https://www.alpinelinux.org/)
 - [NGINX 1.9.15](https://www.nginx.com/)
 - [Oracle Jdk 8.77.03](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 - [HAProxy](http://www.haproxy.org/)
 - [Apache Jetty](http://www.eclipse.org/jetty/)
-- [Apache Bench](http://httpd.apache.org/docs/2.2/en/programs/ab.html)
 
 
+### Project Roadmap
 1. Setup a working environment with the selected tooling.
--  Define/Build containers with the appropiate artifacts and configuration.
--  Test process using the pheonix server pattern (clean environment) to running solution.
+- Define/Build containers with the appropiate artifacts and configuration.
+- Test process using the pheonix server pattern (clean environment) to running solution.
+- Experiment with at scale environments following some of the evolutionary architecture ideation. 
    
 
 <br/><hr/>
@@ -107,23 +119,18 @@ on a change.
 The source for this project is currently stored on GitHub. In order to easily and more importantly 
 get the source you need a git client installed on your virtual machine. 
 
-ssh to your host and install git as follows:
- 
-````
+#### Getting the source
+1. ssh to your host
+1. install git
+1. clone my ***twip*** repository
+
+```bash 
 Welcome to Ubuntu 14.04.3 LTS (GNU/Linux 3.13.0-74-generic x86_64)
-  .
-  .
-  .
+.
+.
+.
 $ sudo apt-get update && sudo apt-get -y install git
 
-```` 
-
-With git availble, we can clone my ***twip*** repository using the command:
->
-> git clone https://github.com/codemarc/twip.git
->      
-  
-```bash
 $ git version
 git version 1.9.1
 
@@ -136,20 +143,21 @@ Unpacking objects: 100% (4/4), done.
 Checking connectivity... done.
 ```
 
-## twip.sh
+### Installing preqs 
 
-The main script for my solution is a bash script aptly named `twip.sh`.
+The main script for my solution is a bash script aptly named *twip.sh*.
 It is located in the twip directory that you just cloned. While there are many 
 other scripting approaches that could be used here, good old bash is still 
 useful to get stuff done quicky right out of the box.
 
-The first time you run `./twips.sh` on a fresh clean ubuntu 14.04 machine it
-checks for and install 
+The first time you run */twips.sh* on a fresh clean ubuntu 14.04 machine it
+checks for and installs 
 [docker](https://www.docker.com), 
-[docker-compose](https://www.docker.com/products/docker-compose), and 
-[docker-machine](https://www.docker.com/products/docker-machine). 
-Additionally setup adds the default ubuntu user to the docker group. All you need to do is 
-to **logout** and then **relogin** so that the group modification can take effect.
+[docker-compose](https://www.docker.com/products/docker-compose), 
+[docker-machine](https://www.docker.com/products/docker-machine), and 
+[apache Bench](http://httpd.apache.org/docs/2.2/en/programs/ab.html).  
+ 
+Additionally setup adds the default ubuntu user to the docker group. All you need to do is to **logout** and then **relogin** so that the group modification can take effect.
 
 ```bash
 $ cd twip
@@ -181,13 +189,15 @@ After you log back in and cd twip and run `./twip.sh`
 ```bash
 $ ./twip.sh
 
-twip Usage: command [arg...]
+twip usage: command [arg...]
 
 Commands:
 
 train      Creates the training environment
 prod       Creates the production environment
+pack       Tag and push production images
 status     Display the status of the environment
+bench      Run Benchmarking Tests
 clean      Removes dangling images and exited containers
 images     List images
 ```
