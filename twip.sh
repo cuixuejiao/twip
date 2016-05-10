@@ -70,6 +70,7 @@ if [ $# -lt 1 ] || [ "$1" = "help" ]; then
    echo
    echo "train      Creates the training environment"
    echo "prod       Creates the production environment"
+   echo "pack       Tag and push production images"
    echo "status     Display the status of the environment"
    echo "bench      Run Benchmarking Tests" 
    echo "clean      Removes dangling images and exited containers"
@@ -126,8 +127,19 @@ if [ "$1" = "status" ]; then
 fi      	
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# pack
+if [ "$1" = "pack" ]; then
+    docker tag prod_static codemarc/twipstatic
+    docker tag prod_web codemarc/twipweb
+    docker push codemarc/twipstatic
+    docker push codemarc/twipweb
+	echo;exit
+fi
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # bench
 if [ "$1" = "bench" ]; then
+    echo ab -n 1000 -c 10 http://localhost/
     ab -n 1000 -c 10 http://localhost/
 	echo;exit
 fi

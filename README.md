@@ -37,20 +37,21 @@ And today that means **Docker**.
 
 Technologies selected/used
 
-* Training [VMware Fusion](https://www.vmware.com/),[Oracle VirtualBox](https://www.virtualbox.org/)
-* Production Amazon Web Services [EC2](https://aws.amazon.com/ec2/), [EC2 Container Service](https://aws.amazon.com/ecs/)
-* [Ubuntu Linux](http://www.ubuntu.com/)
-* [Docker Toolbox](https://www.docker.com/products/docker-toolbox) including [`docker`](https://www.docker.com), [`docker-compose`](https://www.docker.com/products/docker-compose), 
+- Training [VMware Fusion](https://www.vmware.com/),[Oracle VirtualBox](https://www.virtualbox.org/)
+- Production Amazon Web Services [EC2](https://aws.amazon.com/ec2/), [EC2 Container Service](https://aws.amazon.com/ecs/)
+- [Ubuntu Linux](http://www.ubuntu.com/)
+- [Docker Toolbox](https://www.docker.com/products/docker-toolbox) including [`docker`](https://www.docker.com), [`docker-compose`](https://www.docker.com/products/docker-compose), 
 [`docker-machine`](https://www.docker.com/products/docker-machine), [`docker-swarm`](http://www.docker.com/products/docker-swarm)
 - [Docker Hub](https://hub.docker.com/)
 - [Git 1.9.1](https://git-scm.com/) And [GitHub](https://github.com/)
 - [Alpine Linux 3.3](https://www.alpinelinux.org/)
 - [NGINX 1.9.15](https://www.nginx.com/)
 - [Oracle Jdk 8.77.03](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-- [Apache Jetty](http://www.eclipse.org/jetty/)
 - [HAProxy](http://www.haproxy.org/)
+- [Apache Jetty](http://www.eclipse.org/jetty/)
+- [Apache Bench](http://httpd.apache.org/docs/2.2/en/programs/ab.html)
 
- 
+
 1. Setup a working environment with the selected tooling.
 -  Define/Build containers with the appropiate artifacts and configuration.
 -  Test process using the pheonix server pattern (clean environment) to running solution.
@@ -194,9 +195,9 @@ images     List images
 <br/><hr/>
 ## Training 
 Package the static assets into a container running [NGINX ]([NGINX](https://www.nginx.com/) and package the app 
-on into a container running [jetty]().
+on into a container running [jetty](http://www.eclipse.org/jetty/).
 
-<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/train.png'/>
+<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/train.png' width='400'/>
 
 ### NGINX for proxy and hosting static assets
 
@@ -262,17 +263,77 @@ train_static_1   nginx -g daemon off;             Up      443/tcp, 0.0.0.0:80->8
 train_web1_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32812->8080/tcp     
 train_web2_1     /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32813->8080/tcp
 
-ubuntu@ubuntu:~/twip$ wget localhost > /dev/null
---2016-05-07 22:02:57--  http://localhost/
-Resolving localhost (localhost)... ::1, 127.0.0.1
-Connecting to localhost (localhost)|::1|:80... connected.
+$ wget localhost > /dev/null
 HTTP request sent, awaiting response... 200 OK
 Length: 331 [text/html]
 Saving to: ‘index.html’
-
-100%[=======================================================================================================>] 331         --.-K/s   in 0s      
-
 2016-05-07 22:02:58 (94.6 MB/s) - ‘index.html’ saved [331/331]
+````
+
+### Benchmarking the training environment
+As I am a curious guy and I want to know how well this infrastructure stands up. 
+I use Apache Bench to do some simple benchmarking. The twip.sh bench command 
+runs ab apache bench, 1000 HTTP requests, 10 at a time.  
+  
+ `$ ab -n 1000 -c 10 http://localhost/`  
+  
+> $ ./twip.sh bench
+
+````bash
+$ ab -n 1000 -c 10 http://localhost/
+This is ApacheBench, Version 2.3 <$Revision: 1528965 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        nginx/1.9.15
+Server Hostname:        localhost
+Server Port:            80
+
+Document Path:          /
+Document Length:        331 bytes
+
+Concurrency Level:      10
+Time taken for tests:   0.815 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      589914 bytes
+HTML transferred:       331000 bytes
+Requests per second:    1226.77 [#/sec] (mean)
+Time per request:       8.151 [ms] (mean)
+Time per request:       0.815 [ms] (mean, across all concurrent requests)
+Transfer rate:          706.73 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.2      0       3
+Processing:     2    8  10.9      6     183
+Waiting:        0    8  10.9      6     182
+Total:          2    8  10.9      6     183
+
+Percentage of the requests served within a certain time (ms)
+  50%      6
+  66%      8
+  75%      9
+  80%      9
+  90%     11
+  95%     13
+  98%     18
+  99%     32
+ 100%    183 (longest request)
 ````
 
 ### Ups and Downs
@@ -345,15 +406,133 @@ Removing network train_default
 ````
 <hr/>
 ## Production 
-So based on the behavious seen in the training it may be better to  
-the static assets into a container 
-running [NGINX ]([NGINX](https://www.nginx.com/) and package the app 
-on into a container running [jetty]().
 
-<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/prod.png'/>
+In one of his latest works, Neil Ford says: "Architecture is abstract 
+until operationalized. In other words, you can't really judge the long-term 
+viability of any architecture until you've not only implemented it but also 
+upgraded it. And perhaps even enabled it to withstand unusual occurrences."
 
-### NGINX for proxy and hosting static assets
+The production architecture differs from the training architecture in 1 container.
+For production we introduce HAProxy, a free, very fast, and reliable solution offering 
+high availability, load balancing, and proxying for TCP and HTTP-based applications. 
+Just like the overlap between nginx and jetty, there is overlap between HAProxy and NGINX.  
+
+The particular version of HAProxy to be deployed is the dockercloud-haproxy 
+container implementation. This image balances between linked containers 
+and, if launched in Docker Cloud or using Docker Compose v2, it reconfigures 
+itself when a linked cluster member redeploys, joins or leaves.
+
+So based on the behaviour seen in the training implementation it must be better to 
+seperate the the static assets and proxy services into seperate containers.
+
+<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/prod.png' width='400'/>
+
+Certainly the above configuration is more flexible then the training version.
+We can test out hypothsis by building and then testing our production configuration.
+
+
+### Building the containers
+
+> $ ./twip.sh prod build
+
+````bash
+$ ./twip.sh prod build
+.
+.
+.
+REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE
+prod_static           latest              cad42012384c        17 minutes ago      61.94 MB
+prod_web              latest              51442e3e846f        17 minutes ago      182.7 MB
+nginx                 1.9.15-alpine       3839248a6963        31 hours ago        60.63 MB
+alpine                3.3                 13e1761bf172        31 hours ago        4.797 MB
+dockercloud/haproxy   1.2.1               3a6fb5b250d5        7 weeks ago         234.3 MB
+````
+
+* HAProxy publishes stats that can be accessed at [http://&lt;host-ip&gt;:1936](https://github.com/codemarc/twip)
+ 
+
+### Test production
+To spin up the production environment you can run `./twip.sh` as follows:  
+
+````bash
+$ ./twip.sh prod up
+Creating network "prod_default" with the default driver
+Creating prod_web_1
+Creating prod_static_1
+Creating prod_proxy_1
+
+    Name                   Command               State                    Ports                   
+-------------------------------------------------------------------------------------------------
+prod_proxy_1    dockercloud-haproxy              Up      1936/tcp, 443/tcp, 0.0.0.0:32770->80/tcp 
+prod_static_1   nginx -g daemon off;             Up      443/tcp, 0.0.0.0:32769->80/tcp           
+prod_web_1      /bin/sh -c java -jar jetty ...   Up      0.0.0.0:32768->8080/tcp                  
+````
+> $ ./twip.sh bench
+
+```
+$ ./twip.sh bench
+Server Software:        Jetty(7.x.y-SNAPSHOT)
+Server Hostname:        localhost
+Server Port:            80
+
+Document Path:          /
+Document Length:        331 bytes
+
+Concurrency Level:      10
+Time taken for tests:   0.843 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      561940 bytes
+HTML transferred:       331000 bytes
+Requests per second:    1186.62 [#/sec] (mean)
+Time per request:       8.427 [ms] (mean)
+Time per request:       0.843 [ms] (mean, across all concurrent requests)
+Transfer rate:          651.18 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.4      0       5
+Processing:     0    8   9.3      6     108
+Waiting:        0    8   9.3      6     108
+Total:          0    8   9.3      6     108
+
+Percentage of the requests served within a certain time (ms)
+  50%      6
+  66%      9
+  75%     11
+  80%     13
+  90%     17
+  95%     24
+  98%     35
+  99%     51
+ 100%    108 (longest request)
+
+```
+
+At this point I would normally run a battery of tests to calculate metrics
+and tune configuration. an once complete 
+
+<hr/>
+### Concerns addressed
+
+##### Prevayler
+By analyzing the logs produced by jetty I was able to determine that 
+[prevayler](http://prevayler.org), persist data in the file system at
+`/Users/dcameron/persistence`. By creating a docker volume to be shared
+across all where prevayler is used and mapping this volume to a location
+on the host file system we can effectivly persist data across the jetty
+instances.
+
+### Concerns to be addressed
+* [ELK Stack](https://www.elastic.co/products) -
+If I were going to completly tool out this environment, I would add an additional 
+[ELK Stack](https://www.elastic.co/products) containers. The elk stack add  Elasticsearch, 
+Logstash, Kibana, open source tool use for log based analytics.
+ 
 
 <hr/>
 ### Reference Links
+* https://github.com/codemarc/twip
 * https://github.com/docker/dockercloud-haproxy
+* https://docs.docker.com/compose/compose-file/
+* https://www.thoughtworks.com/insights/blog/microservices-evolutionary-architecture
