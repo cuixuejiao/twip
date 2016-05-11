@@ -20,13 +20,20 @@ enable us to build the environments ourselves very easily. We will use VirtualBo
 VMWare or EC2 (your choice) to build your environments. (If you have another 
 virtualization solution you would like to use please ping us first).
 
->  
 > You have free rein to incorporate any software tools and hardware you need to 
-> streamline application deployment and infrastructure provisioning & configuration 
-> as long as they are Free/Libre/Open Source software (FLOSS). We request that 
-> you use Linux.
->
+streamline application deployment and infrastructure provisioning & configuration 
+as long as they are Free/Libre/Open Source software (FLOSS). We request that 
+you use Linux.
 
+### Assumptions
+* The development team has a continuous integration build that produces two artifacts:
+  * a .zip file https://s3.amazonaws.com/infra-assessment/static.zip with the image and 
+  stylesheet used for the application
+  * a .war file https://s3.amazonaws.com/infra-assessment/companyNews.war with the dynamic parts of the application
+  
+* You should deploy the static assets to a web server and the .war file to a separate application server. Any compatible servers are acceptable.
+
+* The app (companyNews) uses Prevayler for persistence. Prevayler essentially persists data to a file. The dev team chose this to simplify the development effort, rather than having to deal with an RDBMS.
 
 ### Solution Strategy
 
@@ -35,7 +42,7 @@ Create infrastructure that is flexible, automatic, consistent, reproducible,
 and disposable. The problem feels like it was custom made for a **container** solution.
 And today that means **Docker**.  
 
-The full set of the technologies selected for this project are broken down as follows:
+The full set of the technologies selected for this project are broken down as follows
 
 #### Tools Environment
 These tools are used to host, build, test and run the infrastructure components
@@ -110,10 +117,10 @@ documentation, etc.
 
 The reasons for this are well known in the construction of software products and they are 
 equally applicable in the construction of infrastructure. 
-* history; with comments and context
-* transparency/visibility; a means to to share and correlate among multiple 
+* history - with comments and context
+* transparency/visibility - a means to to share and correlate among multiple 
 contributors
-* actionability; the ability to automate the execution of an action based 
+* actionability - the ability to automate the execution of an action based 
 on a change.
 
 The source for this project is currently stored on GitHub. In order to easily and more importantly 
@@ -126,9 +133,7 @@ get the source you need a git client installed on your virtual machine.
 
 ```bash 
 Welcome to Ubuntu 14.04.3 LTS (GNU/Linux 3.13.0-74-generic x86_64)
-.
-.
-.
+
 $ sudo apt-get update && sudo apt-get -y install git
 
 $ git version
@@ -150,7 +155,7 @@ It is located in the twip directory that you just cloned. While there are many
 other scripting approaches that could be used here, good old bash is still 
 useful to get stuff done quickly right out of the box.
 
-The first time you run */twips.sh* on a fresh clean ubuntu 14.04 machine it
+The first time you run *twips.sh* on a fresh clean ubuntu 14.04 machine it
 checks for and installs 
 [docker](https://www.docker.com), 
 [docker-compose](https://www.docker.com/products/docker-compose), 
@@ -184,7 +189,7 @@ Server:
 
 ```
 
-After you log back in and cd twip and run *./twip.sh*
+After you log back in and cd twip and run *twip.sh*
 ```bash
 $ cd twip && ./twip.sh
 
@@ -210,13 +215,14 @@ on into a container running [jetty](http://www.eclipse.org/jetty/).
 <img src='https://raw.githubusercontent.com/codemarc/twip/master/img/train.png' width='80%'/>  
 </div>
 
+
 ##### NGINX for proxy and hosting static assets
 [NGINX](https://www.nginx.com/) is a web server, a load balancer, 
 a content cache and more. I am by no means an NGINX expert but I have 
 been using it more and more lately and I find it to be a very effective 
 tool in the container world. It is modular in nature and is a little 
 easier configure to understand then Apache, and if configured appropriately
-is is blazingly fast.  
+is blazingly fast.  
 
 
 ##### Jetty as a Java servlet container
@@ -231,6 +237,52 @@ available (Apache Tomcat, Glassfish, Resin, ...) Jetty is known for the followin
 attributes: performance, throughput, small memory footprint and page load time.
 These characteristics fall in line with our requirements as well as our chosen 
 implementation infrastructure.
+
+### docker-compose.yml
+
+The *twip.sh* shell script is yet another wrapper for yet another markup language.
+In this case docker-compose. The script below is used to describe the training environment
+in terms of docker-compose.
+
+```
+version: '2'
+services:
+  static:
+    hostname: static
+    build:
+      context: .
+      dockerfile: Dockerfile-static
+    environment:
+      - VIRTUAL_HOST=*/styles/*.*,*/images/*.*
+      - VIRTUAL_HOST_WEIGHT=0
+    ports:
+      - 80
+  web:
+    hostname: web
+    build:
+      context: .
+      dockerfile: Dockerfile-web
+    ports:
+      - 8080
+    environment:
+      - VIRTUAL_HOST=*/*.action,*/
+      - VIRTUAL_HOST_WEIGHT=1
+    volumes:
+      - ../data:/Users/dcameron/persistence
+  proxy:
+    image: dockercloud/haproxy:1.2.1
+    container_name: proxy
+    links:
+      - static
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
+      - 1936:1936
+```
+
+
 <br/><br/>
 
 ### Build the training containers
@@ -268,7 +320,9 @@ does not include java. I add the Oracle jdk version of java 8 to avoid any missi
 
  
 ### Run training
-To spin up the training environment you can run *./twip.sh* as follows:  
+To spin up the training environment you can run *twip.sh* as follows:  
+
+<
 
 ````bash
 $ ./twip.sh train up
@@ -543,6 +597,49 @@ I am currently using the free version of the online service [no-ip](https://www.
 <div style="text-align:center;margin:2em;">
 <img src="https://raw.githubusercontent.com/codemarc/twip/master/img/runinprod.png" width='80%'/>
 </div>
+
+### docker-compose.yml
+
+The script below is used to describe the production environment in terms of docker-compose.
+
+```
+version: '2'
+services:
+  static:
+    hostname: static
+    build:
+      context: .
+      dockerfile: Dockerfile-static
+    environment:
+      - VIRTUAL_HOST=*/styles/*.*,*/images/*.*
+      - VIRTUAL_HOST_WEIGHT=0
+    ports:
+      - 80
+  web:
+    hostname: web
+    build:
+      context: .
+      dockerfile: Dockerfile-web
+    ports:
+      - 8080
+    environment:
+      - VIRTUAL_HOST=*/*.action,*/
+      - VIRTUAL_HOST_WEIGHT=1
+    volumes:
+      - ../data:/Users/dcameron/persistence
+  proxy:
+    image: dockercloud/haproxy:1.2.1
+    container_name: proxy
+    links:
+      - static
+      - web
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
+      - 1936:1936
+
+```
 
 ### Building the containers
 
