@@ -1,4 +1,5 @@
 static:
+  target_num_containers: 2
   hostname: static
   image: codemarc/twipstatic
   environment:
@@ -7,6 +8,7 @@ static:
   ports:
     - "80"
 web:
+  target_num_containers: 3
   hostname: web
   image: codemarc/twipweb
   ports:
