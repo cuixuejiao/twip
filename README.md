@@ -64,7 +64,7 @@ These software components are used to logically run the application
 ### Project Roadmap
 1. Setup a working environment with the selected tooling.
 - Define/Build containers with the appropriate artifacts and configuration.
-- Test process using the pheonix server pattern (clean environment) to running solution.
+- Test process using the phoenix server pattern (clean environment) to running solution.
 - Run *at scale* experiments following the [evolutionary architecture](https://www.thoughtworks.com/insights/blog/microservices-evolutionary-architecture) ideation. 
    
 
@@ -559,7 +559,8 @@ dockercloud/haproxy   1.2.1               3a6fb5b250d5        7 weeks ago       
  
 
 ### Test production
-Spin up the production environment and then have a look at http://stats:stats@twip.ddns.net:1936 as follows:  
+Spin up the production environment and then have a look at [twip.ddns.net:1936](http://stats:stats@twip.ddns.net:1936) as follows:  
+
 
 ````bash
 $ ./twip.sh prod up
@@ -668,16 +669,18 @@ Percentage of the requests served within a certain time (ms)
   99%   2145
  100%   2328 (longest request)
   
-                                                                                0.0.0.0:80->80/tcp       
 ````
 
-<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy2.png" /> 
+<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy2.png" width='600'/> 
 
 At this point I would normally run a battery of tests to calculate metrics
 and tune configuration. an once complete 
 
 <hr/>
-### Concerns addressed
+###  Running at scale
+
+To complete the excercise there are at least three avenues to travel down
+Running in the aws 
 
 
 <hr/>
@@ -692,6 +695,14 @@ on the host file system we can effectively persist data across the jetty
 instances.
 
 ### Concerns to be addressed
+
+
+* There are even more components of this project that could be automated by 
+setting up a fully automated build pipleline. Driving CI/CD tooling on commits
+and deployment on dockerhub builds. Using the command line interfaces for 
+provisioning thru the [aws cli](https://aws.amazon.com/cli/) or docker machine.
+ 
+
 * [ELK Stack](https://www.elastic.co/products) -
 If I were going to completely tool out this environment, I would add an additional 
 [ELK Stack](https://www.elastic.co/products) containers. The elk stack add  Elasticsearch, 
@@ -703,4 +714,5 @@ Logstash, Kibana, open source tool use for log based analytics.
 * https://github.com/codemarc/twip
 * https://github.com/docker/dockercloud-haproxy
 * https://docs.docker.com/compose/compose-file/
+* https://www.mindmeister.com/389671722/open-container-ecosystem-formerly-docker-ecosystem
 * https://www.thoughtworks.com/insights/blog/microservices-evolutionary-architecture
