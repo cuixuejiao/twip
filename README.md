@@ -205,8 +205,10 @@ images     List images
 ## Training 
 Package the static assets into a container running [NGINX](https://www.nginx.com/) and package the app 
 on into a container running [jetty](http://www.eclipse.org/jetty/).
-<br/><br/><br/>
-<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/train.png' width='400'/>  
+
+<div style="text-align:center;margin:3em;">
+<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/train.png' width='80%'/>  
+</div>
 
 ##### NGINX for proxy and hosting static assets
 [NGINX](https://www.nginx.com/) is a web server, a load balancer, 
@@ -522,10 +524,12 @@ container implementation. This image balances between linked containers
 and, if launched in Docker Cloud or using Docker Compose v2, it reconfigures 
 itself when a linked cluster member redeploys, joins or leaves.
 
-So based on the behavior seen in the training implementation it must be better to 
+Based on the behavior seen in the training implementation it must be better to 
 separate the the static assets and proxy services into separate containers.
 
-<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/prod.png' width='400'/>
+<div style="text-align:center;margin:2em;">
+<img src='https://raw.githubusercontent.com/codemarc/twip/master/img/prod.png' width='80%'/>
+</div>
 
 Certainly the above configuration is more flexible then the training version.
 We can test out hypothesis by building and then testing our production configuration.
@@ -536,7 +540,9 @@ server in the Domain Name System (DNS), often in real time, with the active
 DDNS configuration of its configured hostnames, addresses or other information. 
 I am currently using the free version of the online service [no-ip](https://www.noip.com/remote-access).
 
-
+<div style="text-align:center;margin:2em;">
+<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/runinprod.png" width='80%'/>
+</div>
 
 ### Building the containers
 
@@ -587,7 +593,7 @@ Server: Jetty(7.x.y-SNAPSHOT)
                   
 ````
 
-<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy1.png" />
+<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy1.png"  width='98%'/>
 
 
 > $ ./twip.sh bench
@@ -671,7 +677,7 @@ Percentage of the requests served within a certain time (ms)
   
 ````
 
-<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy2.png" width='600'/> 
+<img src="https://raw.githubusercontent.com/codemarc/twip/master/img/haproxy2.png" width='98%'/> 
 
 At this point I would normally run a battery of tests to calculate metrics
 and tune configuration. an once complete 
@@ -679,9 +685,109 @@ and tune configuration. an once complete
 <hr/>
 ###  Running at scale
 
-To complete the excercise there are at least three avenues to travel down
-Running in the aws 
+Implementing a solution to run at scale raises some challenging issues. Simply using docker does 
+not directly address all of them. There are both commercial and open source tools
+available create and maintain a container based production environment at scale.
 
+[Amazon EC2 Container Service (ECS)](https://console.aws.amazon.com/ecs/home?region=us-east-1#/getStarted)
+is a highly scalable, fast, container management service that makes it easy to run, stop, 
+and manage Docker containers on a cluster of Amazon EC2 instances. Amazon can get quite pricey if you do not
+employ careful controls on resource usage. Everyone knows of a company that forgot to shutdown their instances
+after a project completion and got hit with a whopper of a bill.
+
+
+<div style="margin-top:3em;margin-bottom:5em;">
+<div style="float:right;margin-top:-3em"> 
+  <img src="https://raw.githubusercontent.com/codemarc/twip/master/img/machswarm.png"  width='400'/>
+</div>
+[Docker Toolbox](https://www.docker.com/products/overview#/docker_toolbox) as product components is an alternate choice  
+can help build a natural implementation to achieve containers at scale by using a combination of 
+`Docker Machine - Docker Swarm - Docker Compose - Docker Registru - Docker Engine`. Essentually 
+you create a virtual data center and then add a third party containers/components to manage and 
+monitor the environment. Many of these projects are listed in  the `Scheduler / Orchestration / Management / Monitoring` section of 
+the [docker ecosystem mindmap](https://www.mindmeister.com/389671722/open-container-ecosystem-formerly-docker-ecosystem).
+</div> 
+
+
+### Docker Cloud
+Building on the concepts of the toolbox, Docker recently released a platform that wraps up the all of this up
+with a easy to use web user interface. [Docker Cloud](https://cloud.docker.com/dashboard/onboarding)
+further simplifes the use of the docker toolchain by allowing users to manage, deploy and scale their 
+applications in any environment. The tools provision engines installed software into nodes, creating 
+dockerized node clusters. Native integration with the Hub to pull images, build, launch, monitor and scale 
+are provided. 
+
+Docker Cloud should be able to: 
+* Provision Docker Installed Infrastructure
+* Manage node clusters
+* Pull images from Docker Hub
+* Deploy containers across nodes
+* Monitor and scale applications
+
+This is the approach I will follow to attempt a scaled platform.
+
+There is no such thing as free lunch, so before we get deeply committed to this path it is important 
+to understand how much docker cloud costs to use. See [pricing](https://www.docker.com/pricing).
+
+While it is possible to let docker hub automatically build my container images for now I will simply
+reuse the tooling from the earlier project to package and push to docker hub. 
+
+To push images to docker hub you need to login with userid and password. You can then run twip.sh do
+the job.
+
+> docker login && ./twip.sh pack
+
+````bash
+$ docker login
+Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
+Username: codemarc
+Password: 
+Login Succeeded
+
+$ ./twip.sh pack
+./twip.sh pack
+The push refers to a repository [docker.io/codemarc/twipstatic]
+6fc274307583: Layer already exists 
+9c0ba3efbd8b: Layer already exists 
+ad3431d16417: Layer already exists 
+8f01a53880b9: Layer already exists 
+latest: digest: sha256:d76d387438cc3826790d683a4fbe36b2db259cc8448e08a4897c2eea60c19baf size: 15895
+The push refers to a repository [docker.io/codemarc/twipweb]
+9808747e2b8c: Layer already exists 
+f492599a1905: Layer already exists 
+bf8a8f1658d5: Layer already exists 
+8f01a53880b9: Layer already exists 
+latest: digest: sha256:dd6a54928d1ec39171258845cc9958b4561255432f45f40ff3f6c47909fb66d5 size: 10265
+
+````
+### Enter the cloud
+
+Log into the [Docker Cloud](https://cloud.docker.com/dashboard/onboarding) console and begin the onboarding
+process.
+
+1. Link to a hosted cloud service provider (I followed the AWS instructions)
+
+- Created and deployed a Node (again based on an AWS micro image)
+ 
+- Created the our application stack - At first I start to individually define each of the services all over
+again. Reading the doc I realized I could easily transform my docker-compose.yml into an equivalent docker-cloud.yml.
+One or two attempts and viola.
+
+- Hit the start start action and 
+
+<div style="text-align:center;margin:2em;">
+  <img src="https://raw.githubusercontent.com/codemarc/twip/master/img/dockercloud.png"  width='400'/>
+</div>
+   
+
+<hr/>
+### Rip it down and clean it up
+
+I have implemented two little extra features in ***twip.sh*** to help keep a clean environment.
+You can use the ***clean up*** command to remove dangeling containers that are sometimes
+left over from bad builds as well as removing exited containers. Or you can use the ***clean all***
+command to delete all containers in the active docker engine.
+  
 
 <hr/>
 ### Concerns addressed
@@ -714,5 +820,9 @@ Logstash, Kibana, open source tool use for log based analytics.
 * https://github.com/codemarc/twip
 * https://github.com/docker/dockercloud-haproxy
 * https://docs.docker.com/compose/compose-file/
-* https://www.mindmeister.com/389671722/open-container-ecosystem-formerly-docker-ecosystem
+
+### Research Links
 * https://www.thoughtworks.com/insights/blog/microservices-evolutionary-architecture
+* https://www.mindmeister.com/389671722/open-container-ecosystem-formerly-docker-ecosystem
+* http://www.nextplatform.com/2015/09/29/why-containers-at-scale-is-hard/
+* https://github.com/google/cadvisor
