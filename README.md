@@ -712,7 +712,7 @@ the [docker ecosystem mindmap](https://www.mindmeister.com/389671722/open-contai
 ### Docker Cloud
 Building on the concepts of the toolbox, Docker recently released a platform that wraps up the all of this up
 with a easy to use web user interface. [Docker Cloud](https://cloud.docker.com/dashboard/onboarding)
-further simplifes the use of the docker toolchain by allowing users to manage, deploy and scale their 
+further simplifies the use of the docker toolchain by allowing users to manage, deploy and scale their 
 applications in any environment. The tools provision engines installed software into nodes, creating 
 dockerized node clusters. Native integration with the Hub to pull images, build, launch, monitor and scale 
 are provided. 
@@ -776,18 +776,76 @@ One or two attempts and viola.
 - Hit the start start action and 
 
 <div style="text-align:center;margin:2em;">
-  <img src="https://raw.githubusercontent.com/codemarc/twip/master/img/dockercloud.png"  width='400'/>
+  <img src="https://raw.githubusercontent.com/codemarc/twip/master/img/dockercloud.png"/>
 </div>
    
+Two final things
+> $ curl -I -X GET http://proxy-1.twip.5dcafcca.cont.dockerapp.io/
+> $ ab -n 1000 -c 10 http://proxy-1.twip.5dcafcca.cont.dockerapp.io/
+
+```bash
+$ curl -I -X GET http://proxy-1.twip.5dcafcca.cont.dockerapp.io/
+HTTP/1.1 200 OK
+Content-Type: text/html;charset=ISO-8859-1
+Set-Cookie: JSESSIONID=f050ewb341sm6nqiod7qtmve;Path=/
+Expires: Thu, 01 Jan 1970 00:00:00 GMT
+Content-Length: 331
+Server: Jetty(7.x.y-SNAPSHOT)
+
+$ ab -n 1000 -c 10 http://proxy-1.twip.5dcafcca.cont.dockerapp.io/
+Server Software:        Jetty(7.x.y-SNAPSHOT)
+Server Hostname:        proxy-1.twip.5dcafcca.cont.dockerapp.io
+Server Port:            80
+
+Document Path:          /
+Document Length:        331 bytes
+
+Concurrency Level:      10
+Time taken for tests:   56.217 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      561989 bytes
+HTML transferred:       331000 bytes
+Requests per second:    17.79 [#/sec] (mean)
+Time per request:       562.173 [ms] (mean)
+Time per request:       56.217 [ms] (mean, across all concurrent requests)
+Transfer rate:          9.76 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:      197  290 305.0    203    3266
+Processing:   187  258 234.7    196    2988
+Waiting:      187  258 234.7    196    2988
+Total:        387  548 387.7    400    3664
+
+Percentage of the requests served within a certain time (ms)
+  50%    400
+  66%    405
+  75%    411
+  80%    420
+  90%    900
+  95%   1415
+  98%   1904
+  99%   2148
+ 100%   3664 (longest request)
+
+````
+
+At this point there is a while lot of new thing to understand and experiment including learning the command line api
+(apparently there is a container to run it). Experimenting with adding a variety of nodes and checking the performance
+(a review of the benchmark show something need tuning). Adding in additional tooling to calculate cpu, memory and io profiles 
+and producing analytics to view and understand the environment. I could go on but for now its more then a few hours and I 
+need to go and do some other work.
 
 <hr/>
 ### Rip it down and clean it up
 
 I have implemented two little extra features in ***twip.sh*** to help keep a clean environment.
-You can use the ***clean up*** command to remove dangeling containers that are sometimes
+You can use the ***clean up*** command to remove dangling containers that are sometimes
 left over from bad builds as well as removing exited containers. Or you can use the ***clean all***
 command to delete all containers in the active docker engine.
   
+Oh Yeah I need to really tear down all of my nodes, images and cleanup for the next gig.
 
 <hr/>
 ### Concerns addressed
@@ -801,7 +859,6 @@ on the host file system we can effectively persist data across the jetty
 instances.
 
 ### Concerns to be addressed
-
 
 * There are even more components of this project that could be automated by 
 setting up a fully automated build pipleline. Driving CI/CD tooling on commits
