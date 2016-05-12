@@ -903,7 +903,7 @@ proxy:
     - "1936:1936"
 ````
 
-- Hit the start start action and 
+> Hit the start start action and 
 
 <div style="text-align:center;margin:2em;">
   <img src="https://raw.githubusercontent.com/codemarc/twip/master/img/dockercloud.png"/>
