@@ -867,8 +867,41 @@ process.
 - Created and deployed a Node (again based on an AWS micro image)
  
 - Created the our application stack - At first I start to individually define each of the services all over
-again. Reading the doc I realized I could easily transform my docker-compose.yml into an equivalent docker-cloud.yml.
+again. Reading the doc I realized I could easily transform my ***docker-compose.yml*** into an equivalent docker-cloud.yml.
 One or two attempts and viola.
+
+```
+static:
+  target_num_containers: 1
+  hostname: static
+  image: codemarc/twipstatic
+  environment:
+    - VIRTUAL_HOST=*/styles/*.*,*/images/*.*
+    - VIRTUAL_HOST_WEIGHT=0
+  ports:
+    - "80"
+web:
+  target_num_containers: 1
+  hostname: web
+  image: codemarc/twipweb
+  ports:
+    - "8080"
+  environment:
+    - VIRTUAL_HOST=*/*.action,*/
+    - VIRTUAL_HOST_WEIGHT=1
+  volumes:
+    - /data:/Users/dcameron/persistence
+proxy:
+  image: dockercloud/haproxy:1.2.1
+  links:
+    - static
+    - web
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  ports:
+    - "80:80"
+    - "1936:1936"
+````
 
 - Hit the start start action and 
 
