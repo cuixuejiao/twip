@@ -322,8 +322,6 @@ does not include java. I add the Oracle jdk version of java 8 to avoid any missi
 ### Run training
 To spin up the training environment you can run *twip.sh* as follows:  
 
-<
-
 ````bash
 $ ./twip.sh train up
 
